@@ -1,0 +1,40 @@
+workflows:
+  android-apk:
+    name: First Aid SOS - Android APK
+    max_build_duration: 45
+    instance_type: linux_x2
+    environment:
+      flutter: stable
+    scripts:
+      - name: Generate Android platform project
+        script: |
+          flutter create --platforms=android --org com.firstaidsos --project-name first_aid_sos .
+      - name: Configure Android dialer visibility
+        script: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+          p = Path('android/app/src/main/AndroidManifest.xml')
+          ET.register_namespace('android', 'http://schemas.android.com/apk/res/android')
+          tree = ET.parse(p)
+          root = tree.getroot()
+          queries = root.find('queries')
+          if queries is None:
+              queries = ET.Element('queries')
+              root.insert(0, queries)
+          intent = ET.SubElement(queries, 'intent')
+          action = ET.SubElement(intent, 'action')
+          action.set('{http://schemas.android.com/apk/res/android}name', 'android.intent.action.DIAL')
+          data = ET.SubElement(intent, 'data')
+          data.set('{http://schemas.android.com/apk/res/android}scheme', 'tel')
+          tree.write(p, encoding='utf-8', xml_declaration=True)
+          print(p.read_text())
+          PY
+      - name: Resolve Flutter dependencies
+        script: flutter pub get
+      - name: Run static analysis
+        script: flutter analyze
+      - name: Build release APK
+        script: flutter build apk --release
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk
