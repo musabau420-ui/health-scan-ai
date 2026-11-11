@@ -1,3 +1,4 @@
+
 workflows:
   android-apk:
     name: First Aid SOS - Android APK
@@ -8,7 +9,7 @@ workflows:
     scripts:
       - name: Generate Android platform project
         script: |
-          flutter create. --platforms=android --org com.firstaidsos --project-name first_aid_sos 
+          flutter create --platforms=android --org com.firstaidsos --project-name first_aid_sos .
       - name: Configure Android dialer visibility
         script: |
           rm -f test/widget_test.dart
@@ -39,4 +40,5 @@ workflows:
         script: flutter build apk --release
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
+
       
